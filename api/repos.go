@@ -9,11 +9,37 @@ import (
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	const NamReposUrl = "https://api.github.com/users/namnguyen191/repos"
+	user := r.URL.Query().Get("user")
+	if user == "" {
+		w.Write([]byte("Please specify the \"user\" param"))
+		return
+	}
+	reposUrl := "https://api.github.com/users/" + user + "/repos?type=owner"
+
+	sortBy := r.URL.Query().Get("sortBy")
+	if sortBy != "" {
+		reposUrl += "&sort=" + sortBy
+	}
+
+	sortDirection := r.URL.Query().Get("sortDirection")
+	if sortDirection != "" {
+		reposUrl += "&direction=" + sortDirection
+	}
+
+	pageLength := r.URL.Query().Get("pageLength")
+	if pageLength != "" {
+		reposUrl += "&per_page=" + pageLength
+	}
+
+	pageNumber := r.URL.Query().Get("pageNumber")
+	if pageNumber != "" {
+		reposUrl += "&page=" + pageNumber
+	}
+
 	client := &http.Client{
 		Timeout: 30 * time.Second,
 	}
-	req, err := http.NewRequest("GET", NamReposUrl, nil)
+	req, err := http.NewRequest("GET", reposUrl, nil)
 	if err != nil {
 		fmt.Println("Error constructing request: ", err)
 		w.Write([]byte("Something went wrong"))
